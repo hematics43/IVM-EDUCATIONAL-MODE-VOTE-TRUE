@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IVM-EDUCATIONAL MODE (VOTE_TRUE)</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#e8e1d6; --panel-2:#d8d0c4; --vvpat:#f6f9ff; --ink:#1e2329;
+    --blue:#1a6ce0; --red:#d83939; --green:#2eaa4f; --amber:#c79b2a; --muted:#7e8696;
+    --shadow:0 12px 30px rgba(0,0,0,.25); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 800px at 70% -20%,#1b2330 0%,#0b0f14 60%);color:#eef2f7;
+       font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",Arial,"Apple Color Emoji","Segoe UI Emoji"}
+  header{position:sticky;top:0;z-index:10;padding:14px 16px;border-bottom:1px solid #18202a;display:grid;gap:6px}
+  header .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  header input#electionTitle{
+    width:min(540px,90vw);padding:10px 12px;border-radius:10px;border:1px solid #203043;background:#0f141b;color:#d8e8ff;
+  }
+  header .meta{font-size:12px;color:#9fb2c7}
+  main{padding:16px;max-width:1300px;margin:0 auto;display:grid;gap:16px;grid-template-columns:1.2fr .9fr}
+  @media (max-width: 980px){main{grid-template-columns:1fr}}
+  .card{background:#0f141b;border:1px solid #1a2532;border-radius:18px;box-shadow:var(--shadow);padding:16px}
+  .section-title{font-weight:800;letter-spacing:.3px;margin-bottom:10px}
+  /* Ballot+VVPAT panel */
+  .ballot{background:var(--panel);color:var(--ink);border:1px solid #c9c1b6;border-radius:var(--radius);
+          display:grid;grid-template-columns:1fr 320px;gap:16px;padding:16px}
+  @media (max-width:820px){.ballot{grid-template-columns:1fr}}
+  .candidates{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow:auto;padding-right:6px}
+  .cand{display:grid;grid-template-columns:1fr auto 92px;gap:10px;align-items:center;background:#fff;border:1px solid #d8d8d8;border-radius:12px;padding:10px 12px}
+  .cand .sym{font-size:22px;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:#f2f6ff;border:1px solid #cfdaf0}
+  .cand .name{font-weight:700}
+  .cand .note{font-size:12px;color:#555}
+  .cand button{
+    appearance:none;border:none;cursor:pointer;width:100%;height:44px;border-radius:10px;
+    background:linear-gradient(#1e75f2,#145bd0);box-shadow:0 3px 0 #0e45a2,0 0 0 2px #0b3a86 inset;color:#fff;font-weight:900;letter-spacing:.4px
+  }
+  .cand button:disabled{filter:grayscale(.6) brightness(.85);opacity:.75;cursor:not-allowed}
+  .vvpat{background:var(--vvpat);border:2px dashed #b7c3d9;min-height:220px;border-radius:12px;padding:10px;display:grid;grid-template-rows:auto 1fr auto;gap:8px;position:relative}
+  .vvpat .glass{position:absolute;inset:8px;border-radius:10px;pointer-events:none;box-shadow:inset 0 120px 60px rgba(0,0,0,.06),inset 0 -8px 16px rgba(0,0,0,.08)}
+  .vvpat .slip{background:#fff;border:1px solid #cbd4e4;border-radius:8px;padding:10px;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center;font-weight:700;color:#1c2430;box-shadow:0 10px 20px rgba(0,0,0,.06);animation:slideIn .25s ease}
+  .vvpat .sicon{font-size:22px;width:36px;height:36px;display:grid;place-items:center;background:#eef4ff;border:1px solid #d4e1fb;border-radius:6px}
+  @keyframes slideIn{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
+  /* Control Unit */
+  .control{background:var(--panel-2);color:var(--ink);border:1px solid #c7beb2;border-radius:var(--radius);display:grid;grid-template-rows:auto auto 1fr auto;gap:10px;padding:16px}
+  .lamps{display:flex;gap:12px;flex-wrap:wrap}
+  .lamp{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border:1px solid #ddd;border-radius:10px;font-weight:700}
+  .dot{width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.15) inset,0 0 8px rgba(0,0,0,.1);background:#9aa5b1}
+  .dot.ready{background:var(--green);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 14px rgba(46,170,79,.75)}
+  .dot.busy{background:var(--amber);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 14px rgba(199,155,42,.7)}
+  .dot.lock{background:var(--red);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 14px rgba(216,57,57,.7)}
+  .cu-screen{background:#0a1220;color:#d1e3ff;border-radius:10px;border:1px solid #22314a;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;min-height:96px;white-space:pre-wrap}
+  .cu-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .cu-buttons button{appearance:none;border:none;cursor:pointer;padding:12px 10px;border-radius:12px;font-weight:900;letter-spacing:.4px;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:0 4px 0 rgba(0,0,0,.18)}
+  .btn-ballot{background:linear-gradient(#2ab263,#1d8b4d)}
+  .btn-total{background:linear-gradient(#1a6ce0,#0f4aa5)}
+  .btn-close{background:linear-gradient(#d84a4a,#b02d2d)}
+  .btn-result{background:linear-gradient(#8b6bff,#5e42db)}
+  .btn-reset{background:linear-gradient(#7b8794,#56616b)}
+  .btn-reset-votes{background:linear-gradient(#ffb020,#c8850d)}
+  .btn-disabled{filter:grayscale(.8) brightness(.8)}
+  .results{margin-top:10px;background:#fff;color:#182030;border-radius:12px;border:1px solid #dfe6f2;padding:12px}
+  .results h4{margin:0 0 8px}
+  .rrow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 0;border-bottom:1px dashed #e7edf7}
+  .rrow:last-child{border-bottom:none}
+  .bar{height:10px;background:#e8eefb;border-radius:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0%}
+  .legend{display:flex;gap:6px;align-items:center}
+  .legend .sym{font-size:16px;background:#eef4ff;border:1px solid #d4e1fb;padding:2px 6px;border-radius:6px}
+  .tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .tbtn{background:#112032;border:1px solid #1f3350;color:#cfe2ff;border-radius:10px;padding:8px 10px;cursor:pointer}
+  .tbtn:disabled{opacity:.6;cursor:not-allowed}
+  /* Add Party */
+  .form{display:grid;gap:10px;grid-template-columns:1.2fr 1.2fr .8fr .8fr auto}
+  .form input,.form button,.form select{height:40px;border-radius:10px;border:1px solid #24344b;background:#0f141b;color:#d8e8ff;padding:0 10px}
+  .form input[type="color"]{padding:0}
+  .form button{background:#1f6feb;border-color:#2a436b;cursor:pointer}
+  .form small{grid-column:1/-1;color:#9fb2c7}
+  .list-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .mini{font-size:12px;color:#9fb2c7}
+  footer{opacity:.8;font-size:12px;text-align:center;padding:14px 10px;color:#9fb2c7}
+  /* Print view: clean result sheet */
+  @media print{
+    body{background:#fff;color:#000}
+    header, .ballot, .cu-buttons, .lamps, .vvpat, .tools, .form, .list-tools, footer{display:none !important}
+    .card{box-shadow:none;border:none;padding:0}
+    .control{border:none}
+    .results{border:1px solid #000}
+    .cu-screen{display:none}
+    .print-title{display:block !important;font-weight:900;margin:0 0 8px;font-size:18px;color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <div class="section-title">IVM-EDUCATIONAL MODE (VOTE_TRUE)</div>
+    <div class="mini">Keys: <b>B</b>=Ballot · <b>T</b>=Total · <b>C</b>=Close · <b>R</b>=Result</div>
+  </div>
+  <div class="row">
+    <input id="electionTitle" placeholder="Election title (e.g., Municipal Elections 2025 — Ward 12)" />
+    <div class="meta">Title & candidates are saved to your browser (localStorage)</div>
+  </div>
+</header>
+
+<main>
+  <!-- Ballot + VVPAT -->
+  <section class="card">
+    <div class="section-title">Ballot Unit + VVPAT</div>
+    <div class="ballot">
+      <div>
+        <div id="candidateList" class="candidates"></div>
+      </div>
+      <div class="vvpat">
+        <div style="font-weight:700;color:#42526b">VVPAT Window</div>
+        <div id="vvpatArea" style="display:grid;align-content:center;gap:10px;color:#6b7a92;text-align:center">
+          Slip appears here for a few seconds after casting vote.
+        </div>
+        <div class="glass"></div>
+        <div style="font-size:12px;color:#5a6a80;text-align:center">Demo only</div>
+      </div>
+    </div>
+    <div class="list-tools">
+      <button class="tbtn" id="btnExportCand">Export Candidate List (JSON)</button>
+      <label class="tbtn" style="display:inline-grid;place-items:center;gap:6px;grid-auto-flow:column">
+        Import Candidate List
+        <input id="importCand" type="file" accept="application/json" style="display:none" />
+      </label>
+      <button class="tbtn" id="btnResetList">Reset to Sample List</button>
+    </div>
+  </section>
+
+  <!-- Control Unit + Results/Tools -->
+  <section class="card">
+    <div class="section-title">Control Unit</div>
+    <div class="control">
+      <div class="lamps">
+        <div class="lamp"><span id="lampReady" class="dot"></span> READY</div>
+        <div class="lamp"><span id="lampBusy" class="dot"></span> BUSY</div>
+        <div class="lamp"><span id="lampLock" class="dot"></span> CLOSE</div>
+      </div>
+      <div class="cu-screen" id="screen">— Standby —\nSet title (optional). Press BALLOT to enable a vote.</div>
+      <div class="cu-buttons">
+        <button class="btn-ballot" id="btnBallot">BALLOT</button>
+        <button class="btn-total"  id="btnTotal">TOTAL</button>
+        <button class="btn-close"  id="btnClose">CLOSE</button>
+        <button class="btn-result" id="btnResult">RESULT</button>
+        <button class="btn-reset-votes" id="btnResetVotes" title="Clear votes only">RESET VOTES</button>
+      </div>
+      <div id="resultBlock" class="results" style="display:none"></div>
+      <div class="tools">
+        <button id="dlCSV"  class="tbtn" disabled>Download Results (CSV)</button>
+        <button id="dlJSON" class="tbtn" disabled>Download Results (JSON)</button>
+        <button id="dlPDF"  class="tbtn" disabled>Print / Save as PDF</button>
+        <button id="btnResetAll" class="tbtn">RESET EVERYTHING</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add Party/Candidate -->
+  <section class="card">
+    <div class="section-title">Add Candidate / Party</div>
+    <div class="form">
+      <input id="inName" placeholder="Candidate name (e.g., R. Sharma)" />
+      <input id="inParty" placeholder="Party/Group (e.g., Sunrise Party)" />
+      <input id="inSymbol" placeholder="Symbol (emoji/text, e.g., ☀️ or LOTUS)" />
+      <input id="inColor" type="color" value="#4e79a7" />
+      <button id="btnAdd">ADD</button>
+      <small>Tip: Use an emoji for symbol, or short text like LOTUS / TREE. You can add unlimited candidates.</small>
+    </div>
+  </section>
+</main>
+
+<footer>© Demo UI for learning. Not an official ECI interface or workflow.</footer>
+
+<script>
+/* ========= Config & Persistence ========= */
+const DEFAULT_CANDIDATES = [
+  { id: 1, name: "Candidate A", party: "Sunshine Party", symbol: "☀️", color:"#4e79a7" },
+  { id: 2, name: "Candidate B", party: "Lotus Front",    symbol: "🌸", color:"#f28e2b" },
+  { id: 3, name: "Candidate C", party: "Tree Alliance",  symbol: "🌳", color:"#59a14f" },
+  { id: 4, name: "Candidate D", party: "Wheel League",   symbol: "🛞", color:"#e15759" },
+  { id: 5, name: "NOTA",        party: "None of the Above", symbol: "🚫", color:"#b07aa1" },
+];
+const LS_KEY_CAND = "evmCandidatesV2";
+const LS_KEY_TITLE = "evmElectionTitleV1";
+const VVPAT_MS = 4500;
+
+let candidates = [];
+let votes = {};
+let totals = 0;
+let ballotArmed = false;
+let closed = false;
+let nextId = 6;
+
+function loadState(){
+  const saved = localStorage.getItem(LS_KEY_CAND);
+  candidates = saved ? JSON.parse(saved) : DEFAULT_CANDIDATES.slice();
+  const savedTitle = localStorage.getItem(LS_KEY_TITLE) || "";
+  document.getElementById("electionTitle").value = savedTitle;
+  nextId = candidates.reduce((m,c)=>Math.max(m,c.id),0)+1;
+  resetVotesOnly(true);
+}
+function saveCandidates(){
+  localStorage.setItem(LS_KEY_CAND, JSON.stringify(candidates));
+}
+function saveTitle(){
+  localStorage.setItem(LS_KEY_TITLE, document.getElementById("electionTitle").value.trim());
+}
+
+/* ========= Elements ========= */
+const elList = document.getElementById("candidateList");
+const elVvpat = document.getElementById("vvpatArea");
+const screen = document.getElementById("screen");
+const lampReady = document.getElementById("lampReady");
+const lampBusy  = document.getElementById("lampBusy");
+const lampLock  = document.getElementById("lampLock");
+const btnBallot = document.getElementById("btnBallot");
+const btnTotal  = document.getElementById("btnTotal");
+const btnClose  = document.getElementById("btnClose");
+const btnResult = document.getElementById("btnResult");
+const btnResetVotes = document.getElementById("btnResetVotes");
+const btnResetAll = document.getElementById("btnResetAll");
+const resultBlock = document.getElementById("resultBlock");
+const btnCSV = document.getElementById("dlCSV");
+const btnJSON = document.getElementById("dlJSON");
+const btnPDF = document.getElementById("dlPDF");
+const titleInput = document.getElementById("electionTitle");
+
+/* ========= Build UI ========= */
+function renderCandidates(){
+  elList.innerHTML = "";
+  candidates.forEach(c=>{
+    const row = document.createElement("div");
+    row.className = "cand";
+    row.innerHTML = `
+      <div>
+        <div class="name">${escapeHTML(c.name)}</div>
+        <div class="note">${escapeHTML(c.party)}</div>
+      </div>
+      <div class="sym" aria-hidden="true">${escapeHTML(c.symbol)}</div>
+      <button id="vote-${c.id}" disabled aria-label="Vote for ${escapeHTML(c.name)}">${c.name.toUpperCase()==="NOTA" ? "NOTA" : "VOTE"}</button>
+    `;
+    elList.appendChild(row);
+    row.querySelector("button").addEventListener("click", ()=>castVote(c));
+  });
+}
+function escapeHTML(s){ return String(s).replace(/[&<>]/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m])) }
+
+/* ========= Lamps + Sound + Haptics ========= */
+function setLamp(el, cls, on){ el.classList.toggle(cls, !!on); }
+function setReady(on){ setLamp(lampReady, "ready", on); }
+function setBusy(on){ setLamp(lampBusy, "busy", on); }
+function setLock(on){ setLamp(lampLock, "lock", on); }
+
+let audioCtx;
+function beep(duration=120, freq=1200){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "square"; o.frequency.value = freq; o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.setValueAtTime(.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration/1000);
+    setTimeout(()=>o.stop(), duration);
+  }catch(e){}
+}
+function vibrate(ms=40){ if (navigator.vibrate) navigator.vibrate(ms); }
+
+/* ========= Control Actions ========= */
+function armBallot(){
+  if (closed){ return screenMsg("Polling closed. Reset votes/all to continue."); }
+  ballotArmed = true; setReady(true); setBusy(false);
+  screenMsg("Ballot armed — ready for one vote.\nSelect ONE candidate.");
+  enableCandidateButtons(true);
+}
+function enableCandidateButtons(on){
+  candidates.forEach(c=>{
+    const b = document.getElementById("vote-"+c.id);
+    if (b) b.disabled = !on;
+  });
+}
+function totalMsg(){ screenMsg(`Total votes recorded: ${totals}`); }
+function doClose(){
+  if (closed){ return screenMsg("Already CLOSED."); }
+  closed = true; ballotArmed = false; enableCandidateButtons(false);
+  setReady(false); setBusy(false); setLock(true);
+  screenMsg("Polling CLOSED.\nYou may now view RESULT and download files.");
+  setDownloadEnabled(true);
+}
+function showResult(){
+  if (!closed){ return screenMsg("Close polling first to view RESULT."); }
+  const max = Math.max(1, ...Object.values(votes));
+  resultBlock.style.display = "block";
+  const ttl = titleInput.value.trim();
+  resultBlock.innerHTML = `
+    <div class="print-title" style="display:none">${escapeHTML(ttl || "Election Result (Demo)")}</div>
+    <h4>${escapeHTML(ttl || "Result (Demo)")}</h4>
+    ${candidates.map(c=>{
+      const v = votes[c.id] || 0;
+      const pct = totals ? Math.round((v/totals)*100) : 0;
+      return `
+        <div class="rrow">
+          <div class="legend"><span class="sym">${escapeHTML(c.symbol)}</span> <b>${escapeHTML(c.name)}</b> <span style="color:#50627a">· ${escapeHTML(c.party)}</span></div>
+          <div><b>${v}</b> <span style="color:#6b7a92">(${pct}%)</span></div>
+          <div class="bar"><i style="background:${c.color};width:${(v/max)*100}%;"></i></div>
+        </div>
+      `;
+    }).join("")}
+    <div style="margin-top:8px;color:#4b5a71">Total votes: <b>${totals}</b></div>
+  `;
+  screenMsg("RESULT printed below. Use download buttons.");
+}
+function setDownloadEnabled(on){
+  btnCSV.disabled = btnJSON.disabled = btnPDF.disabled = !on;
+}
+function resetEverything(){
+  localStorage.removeItem(LS_KEY_CAND);
+  localStorage.removeItem(LS_KEY_TITLE);
+  loadState(); // rebuild from defaults
+  renderCandidates();
+  postResetUI();
+}
+function resetVotesOnly(silent=false){
+  votes = Object.fromEntries((candidates||[]).map(c=>[c.id,0]));
+  totals = 0; ballotArmed=false; closed=false;
+  setReady(false); setBusy(false); setLock(false);
+  enableCandidateButtons(false);
+  elVvpat.innerHTML = `<div style="color:#6b7a92;text-align:center">Slip appears here for a few seconds after casting vote.</div>`;
+  resultBlock.style.display="none"; resultBlock.innerHTML="";
+  setDownloadEnabled(false);
+  if (!silent) screenMsg("Votes reset. Press BALLOT to start.");
+}
+function postResetUI(){ screenMsg("— Standby —\nPress BALLOT to enable a vote."); }
+
+/* ========= Voting ========= */
+let vvpatTimer = null;
+function castVote(candidate){
+  if (!ballotArmed || closed) return;
+  ballotArmed = false; enableCandidateButtons(false);
+  setReady(false); setBusy(true);
+  votes[candidate.id] = (votes[candidate.id] || 0) + 1;
+  totals++;
+  beep(140,1400); vibrate(40);
+  showSlip(candidate);
+  clearTimeout(vvpatTimer);
+  vvpatTimer = setTimeout(()=>{
+    elVvpat.innerHTML = `<div style="color:#6b7a92;text-align:center">Ready for next voter. Press <b>BALLOT</b> again.</div>`;
+    setBusy(false);
+    screenMsg("Vote recorded. Press BALLOT for next voter.");
+  }, VVPAT_MS);
+}
+function showSlip(c){
+  const stamp = new Date().toLocaleString();
+  elVvpat.innerHTML = `
+    <div class="slip" role="status" aria-live="polite">
+      <div class="sicon">${escapeHTML(c.symbol)}</div>
+      <div>
+        <div>${escapeHTML(c.name)}</div>
+        <small>${escapeHTML(c.party)}</small>
+        <small style="color:#7e8da3">ID: ${c.id} · ${stamp}</small>
+      </div>
+    </div>
+  `;
+}
+
+/* ========= Screen + Keys ========= */
+function screenMsg(msg){ screen.textContent = msg; }
+document.addEventListener("keydown", (e)=>{
+  const k = e.key.toLowerCase();
+  if (k==="b") btnBallot.click();
+  if (k==="t") btnTotal.click();
+  if (k==="c") btnClose.click();
+  if (k==="r") btnResult.click();
+});
+
+/* ========= Add Candidate / Party ========= */
+document.getElementById("btnAdd").addEventListener("click", ()=>{
+  const name = document.getElementById("inName").value.trim();
+  const party= document.getElementById("inParty").value.trim();
+  const symbol=document.getElementById("inSymbol").value.trim() || "🔷";
+  const color = document.getElementById("inColor").value || "#4e79a7";
+  if (!name || !party){ return alert("Please enter candidate name and party."); }
+  const newC = { id: nextId++, name, party, symbol, color };
+  candidates.push(newC);
+  saveCandidates();
+  renderCandidates();
+  // extend votes map
+  votes[newC.id]=0;
+  // clear inputs
+  document.getElementById("inName").value="";
+  document.getElementById("inParty").value="";
+  document.getElementById("inSymbol").value="";
+  screenMsg(`Added: ${name} (${party}). Press BALLOT to allow vote.`);
+});
+
+/* ========= Import/Export Candidate List ========= */
+document.getElementById("btnExportCand").addEventListener("click", ()=>{
+  const data = { title: titleInput.value.trim(), candidates };
+  downloadBlob(JSON.stringify(data,null,2), "candidate-list.json", "application/json");
+});
+document.getElementById("importCand").addEventListener("change", (e)=>{
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const obj = JSON.parse(reader.result);
+      const arr = Array.isArray(obj) ? obj : obj.candidates;
+      const title = obj.title || "";
+      if (!Array.isArray(arr)) throw new Error("Invalid file");
+      // sanitize & build
+      candidates = arr.map((c,i)=>({
+        id: Number(c.id) || i+1,
+        name: String(c.name||"Candidate "+(i+1)),
+        party: String(c.party||"Party"),
+        symbol: String(c.symbol||"🔷"),
+        color: String(c.color||"#4e79a7"),
+      }));
+      nextId = candidates.reduce((m,c)=>Math.max(m,c.id),0)+1;
+      if (title) { titleInput.value = title; saveTitle(); }
+      saveCandidates(); renderCandidates(); resetVotesOnly();
+      alert("Candidate list imported.");
+    }catch(err){ alert("Failed to import. Make sure it's a valid JSON of candidates."); }
+  };
+  reader.readAsText(f);
+  e.target.value = "";
+});
+document.getElementById("btnResetList").addEventListener("click", ()=>{
+  if (!confirm("Reset candidate list to sample and clear votes?")) return;
+  candidates = DEFAULT_CANDIDATES.slice();
+  nextId = candidates.reduce((m,c)=>Math.max(m,c.id),0)+1;
+  saveCandidates(); renderCandidates(); resetVotesOnly();
+});
+
+/* ========= Downloads ========= */
+btnCSV.addEventListener("click", ()=>{
+  const rows = buildResultRows();
+  const ttl = safeFileTitle();
+  const csv = toCSV(rows);
+  downloadBlob(csv, `${ttl}-results.csv`, "text/csv");
+});
+btnJSON.addEventListener("click", ()=>{
+  const rows = buildResultRows();
+  const ttl = safeFileTitle();
+  downloadBlob(JSON.stringify({ title: titleInput.value.trim(), total: totals, results: rows }, null, 2),
+               `${ttl}-results.json`, "application/json");
+});
+btnPDF.addEventListener("click", ()=>{
+  // Use print stylesheet – user can "Save as PDF"
+  showResult(); // ensure result visible/updated
+  window.print();
+});
+
+function buildResultRows(){
+  return candidates.map(c=>{
+    const v = votes[c.id] || 0;
+    const pct = totals ? (v/totals*100) : 0;
+    return { id:c.id, name:c.name, party:c.party, symbol:c.symbol, color:c.color, votes:v, percent:Math.round(pct) };
+  }).sort((a,b)=>b.votes-a.votes || a.name.localeCompare(b.name));
+}
+function toCSV(rows){
+  const header = ["id","name","party","symbol","color","votes","percent"];
+  const wrap = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g,'""')}"` : v;
+  return header.join(",") + "\n" + rows.map(r=>header.map(h=>wrap(r[h] ?? "")).join(",")).join("\n");
+}
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], {type});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+}
+function safeFileTitle(){
+  const ttl = titleInput.value.trim() || "evm-demo";
+  return ttl.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+
+/* ========= Wire Buttons & Title ========= */
+btnBallot.addEventListener("click", armBallot);
+btnTotal .addEventListener("click", totalMsg);
+btnClose .addEventListener("click", doClose);
+btnResult.addEventListener("click", showResult);
+btnResetVotes.addEventListener("click", ()=>{ if(confirm("Clear all votes?")) resetVotesOnly(); });
+btnResetAll.addEventListener("click", ()=>{ if(confirm("Reset everything (title, candidates, votes)?")) resetEverything(); });
+titleInput.addEventListener("change", saveTitle);
+
+/* ========= Init ========= */
+loadState(); renderCandidates(); postResetUI();
+</script>
+</body>
+</html>
