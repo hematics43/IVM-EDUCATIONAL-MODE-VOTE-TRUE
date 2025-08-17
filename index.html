@@ -90,6 +90,33 @@
     .cu-screen{display:none}
     .print-title{display:block !important;font-weight:900;margin:0 0 8px;font-size:18px;color:#000}
   }
+  /* Button Style */
+.how-btn {
+  background: #1216ee;
+  color: #fff;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+.how-btn:hover {
+  background: #e60e0e;
+}
+
+/* Info Box Style */
+.how-box {
+  display: none;
+  background: #83e4df;
+  border: 2px solid #020c00;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #020101;
+}
+  
 </style>
 </head>
 <body>
@@ -100,8 +127,7 @@
   </div>
   <div class="row">
     <input id="electionTitle" placeholder="Election title (e.g., Municipal Elections 2025 — Ward 12)" />
-    <div class="meta">Title & candidates are saved to your browser (localStorage)</div>
-  </div>
+      </div>
 </header>
 
 <main>
@@ -154,9 +180,21 @@
         <button id="dlJSON" class="tbtn" disabled>Download Results (JSON)</button>
         <button id="dlPDF"  class="tbtn" disabled>Print / Save as PDF</button>
         <button id="btnResetAll" class="tbtn">RESET EVERYTHING</button>
+        <button class="how-btn" onclick="toggleHow()">How it Works</button>
       </div>
+      <div id="howBox" class="how-box">
+  <h3>How Indian EVM Works</h3>
+  <ol>
+    <li>User presses the button against their chosen party/candidate.</li>
+    <li>The vote gets recorded and locked inside the machine.</li>
+    <li>Only one vote per voter is allowed.</li>
+    <li>At the end of polling, result button is pressed by authorized officer.</li>
+    <li>Votes are counted and results are displayed securely.</li>
+  </ol>
+</div>
     </div>
   </section>
+  
 
   <!-- Add Party/Candidate -->
   <section class="card">
@@ -172,7 +210,7 @@
   </section>
 </main>
 
-<footer>© Demo UI for learning. Not an official ECI interface or workflow.</footer>
+<footer>IVM-EDUCATIONAL MODE (VOTE_TRUE) is Demo UI for learning. Not an official interface or workflow.</footer>
 
 <script>
 /* ========= Config & Persistence ========= */
@@ -489,6 +527,12 @@ titleInput.addEventListener("change", saveTitle);
 
 /* ========= Init ========= */
 loadState(); renderCandidates(); postResetUI();
+</script>
+<script>
+function toggleHow() {
+  const box = document.getElementById("howBox");
+  box.style.display = (box.style.display === "block") ? "none" : "block";
+}
 </script>
 </body>
 </html>
